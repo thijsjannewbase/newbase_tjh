@@ -1,25 +1,79 @@
 #!/usr/bin/env python
 #
-# Copyright 2007 Google Inc.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-#
+
 import webapp2
+import json
+import cgi
+from google.appengine.ext.webapp.util import run_wsgi_app
+import MySQLdb
+import os
+import logging
+
+
+def getDb():
+    env = os.getenv('SERVER_SOFTWARE')
+    if (env and env.startswith('Google App Engine/')):
+        # Connecting from App Engine
+        db = MySQLdb.connect(
+            unix_socket='/cloudsql/newbase-thijsjan:db',
+            user='root',
+            db='Newbase')
+
+    else:
+        db = MySQLdb.connect(
+            host='173.194.228.208',
+            port=3306,
+            user='root',
+            passwd='diskette9911',
+            db='Newbase')
+        return db
+
 
 class MainHandler(webapp2.RequestHandler):
     def get(self):
-        self.response.write('Hello world!')
+        # for now direct SQL queries, in the future use django as ORM
+        db = getDb();
+        cursor = db.cursor()
+        cursor.execute('SELECT * from projects')
+        response = json.dumps(cursor.fetchall())
 
+        logging.info('returning: ' + response)
+
+        self.response.content_type = 'text/json'
+        self.response.write(response)
+        # other response stuff? https://webapp-improved.appspot.com/guide/response.html
+
+    def post(self):
+        id = self.request.get('id')
+        name = self.request.get('name')
+        logging.info('Inserting project named ' + name + ' with id '+ str(id))
+
+        db = getDb();
+        cursor = db.cursor()
+        cursor.execute('INSERT INTO projects (id, name) VALUES (%s, %s)', [id, name])
+        db.commit()
+        db.close()
+
+        self.redirect("/")
+
+    def put(self):
+        name = self.request.get('name')
+        id = int(self.request.get('id'))
+        logging.info('updating project with ID ' + str(id) + ' with name ' + name)
+
+        db = getDb();
+        cursor = db.cursor()
+        result = cursor.execute('UPDATE projects set name = %s where id = %s', [name, id])
+        db.commit()
+        db.close()
+        if result == 0:
+            self.response.write('could not update')
+            self.response.set_status(404)
+        else:
+            self.response.write(result)
+
+
+# webapp2: https://webapp-improved.appspot.com/index.html
 app = webapp2.WSGIApplication([
     ('/', MainHandler)
 ], debug=True)
