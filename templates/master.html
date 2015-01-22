@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html ng-app="myApp">
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>Bla</title>
+    <!--<link href="/static/my_css.css" rel="stylesheet">-->
+    <!--<link href="/static/material.css" rel="stylesheet">-->
+    <!--<link href="/static/material-wfont.css" rel="stylesheet">-->
+    <!--<link href="/static/ripples.css" rel="stylesheet">-->
+    <script src="/static/js/angular.js"></script>
+    <script src="/static/js/projects.js"></script>
+ </head>
+<body>
+
+
+    <div>
+        <ul ng-controller="ProjectListCtrl">
+            <li ng-repeat="project in projects">
+                <span>{[project.name]}</span> with id
+                <span>{[project.id]}</span>
+            </li>
+        </ul>
+    </div>
+
+    <form action="" method="get">
+        <div>
+            <label for="id"> ID: </label>
+            <input type="number" required name="id">
+        </div>
+        <div class="form-control-wrapper">
+            <input type="text" class="form-control empty" placeholder="label"><span class="material-input"></span>
+        </div>
+
+        <div>
+            <label for="id"> name: </label>
+            <input type="text" name="name">
+        </div>
+
+        <div>
+            <button>doe het</button>
+        </div>
+    </form>
+
+</body>
+</html>
